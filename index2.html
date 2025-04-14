@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulazione di Allunaggio Avanzata</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="layout">
+    <header class="header">
+      <h1 class="title">Simulazione Avanzata di Allunaggio</h1>
+    </header>
+
+    <section class="controls">
+      <form id="inputForm" class="input-form">
+        <label for="massa">Massa navetta (kg):</label>
+        <input type="number" id="massa" class="input" min="10" max="10000" required />
+
+        <label for="velocita">Velocità iniziale (m/s):</label>
+        <input type="number" id="velocita" class="input" min="0" max="100" required />
+
+        <button type="submit" class="btn-start">Avvia Simulazione</button>
+      </form>
+
+      <div class="telemetria">
+        <p>Velocità: <span id="teleVel">0</span> m/s</p>
+        <p>Altitudine: <span id="teleAlt">0</span> m</p>
+        <p>Carburante: <span id="teleFuel">0</span>%</p>
+        <p>Stato: <span id="stato">In attesa...</span></p>
+      </div>
+    </section>
+
+    <section class="simulatore-area">
+      <div id="areaSimulazione" class="sim-area">
+        <div id="navicella" class="lander"></div>
+        <div id="bersaglio" class="target"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Costanti fisiche e parametri
+    const gL = 1.66; // gravità lunare (m/s^2)
+    const dt = 0.05; // intervallo tempo (s)
+    const thrust = 4; // accelerazione dei motori (m/s^2)
+    const maxLandingV = 5; // velocità massima consentita per atterraggio sicuro
+    const suoloY = 380; // altezza suolo nel DOM
+    const consumoPerTick = 1; // consumo carburante per tick motori accesi
+
+    // Elementi DOM
+    const form = document.getElementById("inputForm");
+    const navicella = document.getElementById("navicella");
+    const statoEl = document.getElementById("stato");
+    const velEl = document.getElementById("teleVel");
+    const altEl = document.getElementById("teleAlt");
+    const fuelEl = document.getElementById("teleFuel");
+
+    let v = 0; // velocità verticale
+    let y = 0; // posizione verticale
+    let fuel = 100; // carburante percentuale
+    let spinta = false; // stato motori
+    let atterrato = false;
+    let intervallo;
+
+    // Gestione dei tasti freccia
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") spinta = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowUp") spinta = false;
+    });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      resetSimulazione();
+
+      v = parseFloat(document.getElementById("velocita").value);
+      y = 0;
+      fuel = 100;
+      atterrato = false;
+      navicella.style.top = y + "px";
+      statoEl.textContent = "Simulazione in corso...";
+
+      intervallo = setInterval(() => {
+        let acc = gL;
+
+        if (spinta && fuel > 0) {
+          acc -= thrust;
+          fuel = Math.max(0, fuel - consumoPerTick);
+        }
+
+        v += acc * dt;
+        y += v * dt * 20; // moltiplichiamo per 20 per adattare al DOM
+
+        // Aggiorna DOM
+        navicella.style.top = `${y}px`;
+        velEl.textContent = v.toFixed(2);
+        altEl.textContent = Math.max(0, (suoloY - y).toFixed(2));
+        fuelEl.textContent = fuel.toFixed(0);
+
+        // Controllo atterraggio
+        if (y >= suoloY) {
+          clearInterval(intervallo);
+          atterrato = true;
+          if (v <= maxLandingV) {
+            statoEl.textContent = "Atterraggio riuscito!";
+          } else {
+            statoEl.textContent = "Crash! Troppa velocità.";
+          }
+        }
+      }, dt * 1000);
+    });
+
+    function resetSimulazione() {
+      clearInterval(intervallo);
+      v = 0;
+      y = 0;
+      fuel = 100;
+      spinta = false;
+      statoEl.textContent = "In attesa...";
+      navicella.style.top = "0px";
+    }
+  </script>
+</body>
+</html>
