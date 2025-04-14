@@ -15,7 +15,7 @@
 
     const raggioNavicella = document.getElementById("navicella").clientWidth / 2;
 
-    const velocitaOrizzontale = 10;
+    const velocitaOrizzontale = 5;
     const G = 6.674e-11;
     const mLuna = 7.348e22;
     const rLuna = 1.737e6;
@@ -109,7 +109,7 @@
           tempoPressione += dt;
           const thrust = maxThrust * (1 - Math.exp(-k * tempoPressione));
           acc -= thrust;
-          //fuel = Math.max(0, fuel - consumoPerTick);
+          fuel = Math.max(0, fuel - consumoPerTick);
         } else {
           tempoPressione = 0;
         }
