@@ -23,13 +23,22 @@
         <button type="submit" class="btn-start">Avvia Simulazione</button>
       </form>
 
-      <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori</button>
+      <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori (freccia ↑)</button>
 
       <div class="telemetria">
         <p>Velocità: <span id="teleVel">0</span> m/s</p>
         <p>Altitudine: <span id="teleAlt">0</span> m</p>
         <p>Carburante: <span id="teleFuel">0</span>%</p>
         <p>Stato: <span id="stato">In attesa...</span></p>
+      </div>
+
+      <div class="istruzioni">
+        <h3>Controlli:</h3>
+        <ul>
+          <li><strong>Freccia ↑</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente)</li>
+          <li>Rilascia per disattivare i motori</li>
+          <li>Controlla carburante, velocità e altitudine per atterrare in sicurezza</li>
+        </ul>
       </div>
     </section>
 
@@ -44,11 +53,11 @@
   <script>
     const gL = 1.66;
     const dt = 0.05;
-    const thrust = 3.2;
     const maxLandingV = 5;
     const suoloY = 380;
     const consumoPerTick = 0.8;
     const moltiplicatoreVisivo = 10;
+    const maxThrust = 6;
 
     const form = document.getElementById("inputForm");
     const navicella = document.getElementById("navicella");
@@ -62,9 +71,11 @@
     let y = 0;
     let fuel = 100;
     let spinta = false;
+    let thrust = 0;
     let atterrato = false;
     let intervallo;
 
+    // Controlli propulsione
     btnPropulsore.addEventListener("mousedown", () => spinta = true);
     btnPropulsore.addEventListener("mouseup", () => spinta = false);
     btnPropulsore.addEventListener("touchstart", () => spinta = true);
@@ -84,6 +95,7 @@
       v = parseFloat(document.getElementById("velocita").value);
       y = 0;
       fuel = 100;
+      thrust = 0;
       atterrato = false;
       navicella.style.top = y + "px";
       statoEl.textContent = "Simulazione in corso...";
@@ -92,8 +104,12 @@
         let acc = gL;
 
         if (spinta && fuel > 0) {
+          // Spinta progressiva fino a maxThrust
+          thrust = Math.min(thrust + 0.2, maxThrust);
           acc -= thrust;
           fuel = Math.max(0, fuel - consumoPerTick);
+        } else {
+          thrust = 0; // resetta la spinta se motori spenti
         }
 
         v += acc * dt;
@@ -122,9 +138,13 @@
       y = 0;
       fuel = 100;
       spinta = false;
+      thrust = 0;
       statoEl.textContent = "In attesa...";
       navicella.style.top = "0px";
     }
   </script>
 </body>
 </html>
+
+
+<!-- chidere di continuare a modificare -->
