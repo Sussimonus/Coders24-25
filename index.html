@@ -3,81 +3,128 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulazione di Allunaggio</title>
+  <title>Simulazione Avanzata di Allunaggio</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <main class="container">
+  <main class="layout">
     <header class="header">
-      <h1 class="title">Simulazione di Allunaggio</h1>
+      <h1 class="title">Simulazione Avanzata di Allunaggio</h1>
     </header>
 
-    <section class="input-section">
-      <form id="form-dati" class="form">
+    <section class="controls">
+      <form id="inputForm" class="input-form">
         <label for="massa">Massa navetta (kg):</label>
-        <input type="number" id="massa" name="massa" class="input" min="10" max="10000" required />
+        <input type="number" id="massa" class="input" min="10" max="10000" required />
 
         <label for="velocita">Velocità iniziale (m/s):</label>
-        <input type="number" id="velocita" name="velocita" class="input" min="0" max="100" required />
+        <input type="number" id="velocita" class="input" min="0" max="100" required />
 
-        <button type="submit" class="btn-avvia">Avvia discesa</button>
+        <button type="submit" class="btn-start">Avvia Simulazione</button>
       </form>
-    </section>
 
-    <section class="simulazione-section">
-      <div id="simulatore" class="simulatore">
-        <div id="navicella" class="navicella"></div>
-        <div id="bersaglio" class="bersaglio"></div>
+      <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori</button>
+
+      <div class="telemetria">
+        <p>Velocità: <span id="teleVel">0</span> m/s</p>
+        <p>Altitudine: <span id="teleAlt">0</span> m</p>
+        <p>Carburante: <span id="teleFuel">0</span>%</p>
+        <p>Stato: <span id="stato">In attesa...</span></p>
       </div>
     </section>
 
-    <section class="output-section">
-      <p id="stato" class="stato">Stato: in attesa di input...</p>
-      <p id="dati-output" class="output"></p>
+    <section class="simulatore-area">
+      <div id="areaSimulazione" class="sim-area">
+        <div id="navicella" class="lander"></div>
+        <div id="bersaglio" class="target"></div>
+      </div>
     </section>
   </main>
 
   <script>
-    const form = document.getElementById("form-dati");
-    const navicella = document.getElementById("navicella");
-    const stato = document.getElementById("stato");
-    const output = document.getElementById("dati-output");
+    const gL = 1.66;
+    const dt = 0.05;
+    const thrust = 3.2;
+    const maxLandingV = 5;
+    const suoloY = 380;
+    const consumoPerTick = 0.8;
+    const moltiplicatoreVisivo = 10;
 
-    const gL = 1.66; // Gravita lunare
+    const form = document.getElementById("inputForm");
+    const navicella = document.getElementById("navicella");
+    const statoEl = document.getElementById("stato");
+    const velEl = document.getElementById("teleVel");
+    const altEl = document.getElementById("teleAlt");
+    const fuelEl = document.getElementById("teleFuel");
+    const btnPropulsore = document.getElementById("btnPropulsore");
+
+    let v = 0;
+    let y = 0;
+    let fuel = 100;
+    let spinta = false;
+    let atterrato = false;
     let intervallo;
+
+    btnPropulsore.addEventListener("mousedown", () => spinta = true);
+    btnPropulsore.addEventListener("mouseup", () => spinta = false);
+    btnPropulsore.addEventListener("touchstart", () => spinta = true);
+    btnPropulsore.addEventListener("touchend", () => spinta = false);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") spinta = true;
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowUp") spinta = false;
+    });
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      const massa = parseFloat(document.getElementById("massa").value);
-      const velocitaIniziale = parseFloat(document.getElementById("velocita").value);
+      resetSimulazione();
 
-      let tempo = 0;
-      let y = 0;
-      let v = velocitaIniziale;
-
-      navicella.style.top = "0px";
-      stato.textContent = "Simulazione in corso...";
-
-      clearInterval(intervallo);
+      v = parseFloat(document.getElementById("velocita").value);
+      y = 0;
+      fuel = 100;
+      atterrato = false;
+      navicella.style.top = y + "px";
+      statoEl.textContent = "Simulazione in corso...";
 
       intervallo = setInterval(() => {
-        tempo += 0.1;
-        v = velocitaIniziale + gL * tempo;
-        y = velocitaIniziale * tempo + 0.5 * gL * tempo * tempo;
+        let acc = gL;
+
+        if (spinta && fuel > 0) {
+          acc -= thrust;
+          fuel = Math.max(0, fuel - consumoPerTick);
+        }
+
+        v += acc * dt;
+        y += v * dt * moltiplicatoreVisivo;
 
         navicella.style.top = `${y}px`;
-        output.textContent = `Tempo: ${tempo.toFixed(2)} s | Altezza: ${y.toFixed(2)} px | Velocità: ${v.toFixed(2)} m/s`;
+        velEl.textContent = v.toFixed(2);
+        altEl.textContent = Math.max(0, ((suoloY - y) / moltiplicatoreVisivo).toFixed(2));
+        fuelEl.textContent = fuel.toFixed(0);
 
-        if (y >= 400) {
+        if (y >= suoloY) {
           clearInterval(intervallo);
-          if (v <= 5) {
-            stato.textContent = "Atterraggio riuscito!";
+          atterrato = true;
+          if (v <= maxLandingV) {
+            statoEl.textContent = "Atterraggio riuscito!";
           } else {
-            stato.textContent = "Crash! Velocità troppo elevata.";
+            statoEl.textContent = "Crash! Troppa velocità.";
           }
         }
-      }, 100);
+      }, dt * 1000);
     });
+
+    function resetSimulazione() {
+      clearInterval(intervallo);
+      v = 0;
+      y = 0;
+      fuel = 100;
+      spinta = false;
+      statoEl.textContent = "In attesa...";
+      navicella.style.top = "0px";
+    }
   </script>
 </body>
 </html>
