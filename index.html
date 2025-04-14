@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Simulazione Avanzata di Allunaggio</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+
+<body onresize="setLarghezzaCanvas()">
   <main class="layout">
     <header class="header">
       <h1 class="title">Simulazione Avanzata di Allunaggio</h1>
@@ -23,25 +25,32 @@
         <button type="submit" class="btn-start">Avvia Simulazione</button>
       </form>
 
-      <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori (freccia ↑)</button>
+      <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori (tasto W)</button>
 
-      <div class="telemetria">
-        <p>Velocità: <span id="teleVel">0</span> m/s</p>
-        <p>Altitudine: <span id="teleAlt">0</span> m</p>
-        <p>Carburante: <span id="teleFuel">0</span>%</p>
-        <p>Stato: <span id="stato">In attesa...</span></p>
+
+      <div class="telemetria-istruzioni">
+        <div class="telemetria">
+          <p>Velocità: <span id="teleVel">0</span> m/s</p>
+          <p>Altitudine: <span id="teleAlt">0</span> m</p>
+          <p>Carburante: <span id="teleFuel">0</span>%</p>
+          <p>Stato: <span id="stato">In attesa...</span></p>
+        </div>
+  
+        <div class="istruzioni">
+          <h3>Controlli:</h3>
+          <ul>
+            <li><strong>Tasto W</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente secondo
+              curva esponenziale)</li>
+            <li>Rilascia per disattivare i motori</li>
+            <li>L'atterraggio è considerato <strong>riuscito</strong> se la navetta tocca il suolo con una velocità ≤ 5
+              m/s</li>
+            <li>L'atterraggio è <strong>fallito</strong> (Crash!) se la velocità è superiore a 5 m/s all’impatto</li>
+          </ul>
+        </div>
       </div>
+      
 
-      <div class="istruzioni">
-        <h3>Controlli:</h3>
-        <ul>
-          <li><strong>Freccia ↑</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente secondo curva esponenziale)</li>
-          <li>Rilascia per disattivare i motori</li>
-          <li>Controlla carburante, velocità e altitudine per atterrare in sicurezza</li>
-        </ul>
-      </div>
-
-      <p class="note">Simulazione generata e assistita da ChatGPT-4 (gpt-4-turbo), modello di OpenAI</p>
+      <p class="note" id="prova"></p>
     </section>
 
     <section class="simulatore-area">
@@ -52,108 +61,8 @@
     </section>
   </main>
 
-  <script>
-    const G = 6.674e-11;
-    const mLuna = 7.348e22;
-    const rLuna = 1.737e6;
-    const maxLandingV = 5;
-    const consumoPerTick = 0.8;
-    const moltiplicatoreVisivo = 10;
-    const maxThrust = 6;
-    const k = 2.5;
-    const altMax = 500000;
-    const suoloY = 380;
-    const altitudineSicura = 0; // Altitudine target per un atterraggio perfetto
-
-    const form = document.getElementById("inputForm");
-    const navicella = document.getElementById("navicella");
-    const statoEl = document.getElementById("stato");
-    const velEl = document.getElementById("teleVel");
-    const altEl = document.getElementById("teleAlt");
-    const fuelEl = document.getElementById("teleFuel");
-    const btnPropulsore = document.getElementById("btnPropulsore");
-
-    let dt = 0.05;
-    let v = 0;
-    let y = 0;
-    let fuel = 100;
-    let spinta = false;
-    let tempoPressione = 0;
-    let atterrato = false;
-    let intervallo;
-
-    btnPropulsore.addEventListener("mousedown", () => spinta = true);
-    btnPropulsore.addEventListener("mouseup", () => spinta = false);
-    btnPropulsore.addEventListener("touchstart", () => spinta = true);
-    btnPropulsore.addEventListener("touchend", () => spinta = false);
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowUp") spinta = true;
-    });
-    document.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowUp") spinta = false;
-    });
-
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      resetSimulazione();
-
-      v = parseFloat(document.getElementById("velocita").value);
-      y = 0;
-      fuel = 100;
-      tempoPressione = 0;
-      atterrato = false;
-      navicella.style.top = y + "px";
-      statoEl.textContent = "Simulazione in corso...";
-
-      intervallo = setInterval(() => {
-        const altitudine = ((suoloY - y) / suoloY) * altMax;
-        const altitudineReale = Math.max(0, altitudine); // blocco sotto zero
-        const r = rLuna + altitudineReale;
-
-        const g = G * mLuna / (r * r);
-
-        let acc = g;
-
-        if (spinta && fuel > 0) {
-          tempoPressione += dt;
-          const thrust = maxThrust * (1 - Math.exp(-k * tempoPressione));
-          acc -= thrust;
-          fuel = Math.max(0, fuel - consumoPerTick);
-        } else {
-          tempoPressione = 0;
-        }
-
-        v += acc * dt;
-        y += v * dt * moltiplicatoreVisivo;
-
-        navicella.style.top = `${Math.min(y, suoloY)}px`;
-        velEl.textContent = v.toFixed(2);
-        altEl.textContent = altitudineReale.toFixed(0);
-        fuelEl.textContent = fuel.toFixed(0);
-
-        if (altitudineReale <= altitudineSicura && !atterrato) {
-          clearInterval(intervallo);
-          atterrato = true;
-          if (v <= maxLandingV) {
-            statoEl.textContent = "Atterraggio riuscito!";
-          } else {
-            statoEl.textContent = "Crash! Troppa velocità.";
-          }
-        }
-      }, dt * 1000);
-    });
-
-    function resetSimulazione() {
-      clearInterval(intervallo);
-      v = 0;
-      y = 0;
-      fuel = 100;
-      spinta = false;
-      tempoPressione = 0;
-      statoEl.textContent = "In attesa...";
-      navicella.style.top = "0px";
-    }
+  <script src="js/script.js">
   </script>
 </body>
+
 </html>
