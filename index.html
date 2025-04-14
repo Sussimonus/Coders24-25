@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulazione di Allunaggio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1 class="title">Simulazione di Allunaggio</h1>
+    </header>
+
+    <section class="input-section">
+      <form id="form-dati" class="form">
+        <label for="massa">Massa navetta (kg):</label>
+        <input type="number" id="massa" name="massa" class="input" min="10" max="10000" required />
+
+        <label for="velocita">Velocità iniziale (m/s):</label>
+        <input type="number" id="velocita" name="velocita" class="input" min="0" max="100" required />
+
+        <button type="submit" class="btn-avvia">Avvia discesa</button>
+      </form>
+    </section>
+
+    <section class="simulazione-section">
+      <div id="simulatore" class="simulatore">
+        <div id="navicella" class="navicella"></div>
+        <div id="bersaglio" class="bersaglio"></div>
+      </div>
+    </section>
+
+    <section class="output-section">
+      <p id="stato" class="stato">Stato: in attesa di input...</p>
+      <p id="dati-output" class="output"></p>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("form-dati");
+    const navicella = document.getElementById("navicella");
+    const stato = document.getElementById("stato");
+    const output = document.getElementById("dati-output");
+
+    const gL = 1.66; // Gravita lunare
+    let intervallo;
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const massa = parseFloat(document.getElementById("massa").value);
+      const velocitaIniziale = parseFloat(document.getElementById("velocita").value);
+
+      let tempo = 0;
+      let y = 0;
+      let v = velocitaIniziale;
+
+      navicella.style.top = "0px";
+      stato.textContent = "Simulazione in corso...";
+
+      clearInterval(intervallo);
+
+      intervallo = setInterval(() => {
+        tempo += 0.1;
+        v = velocitaIniziale + gL * tempo;
+        y = velocitaIniziale * tempo + 0.5 * gL * tempo * tempo;
+
+        navicella.style.top = `${y}px`;
+        output.textContent = `Tempo: ${tempo.toFixed(2)} s | Altezza: ${y.toFixed(2)} px | Velocità: ${v.toFixed(2)} m/s`;
+
+        if (y >= 400) {
+          clearInterval(intervallo);
+          if (v <= 5) {
+            stato.textContent = "Atterraggio riuscito!";
+          } else {
+            stato.textContent = "Crash! Velocità troppo elevata.";
+          }
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>
