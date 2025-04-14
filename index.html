@@ -35,11 +35,13 @@
       <div class="istruzioni">
         <h3>Controlli:</h3>
         <ul>
-          <li><strong>Freccia ↑</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente)</li>
+          <li><strong>Freccia ↑</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente secondo curva esponenziale)</li>
           <li>Rilascia per disattivare i motori</li>
           <li>Controlla carburante, velocità e altitudine per atterrare in sicurezza</li>
         </ul>
       </div>
+
+      <p class="note">Simulazione generata e assistita da ChatGPT-4 (gpt-4-turbo), modello di OpenAI</p>
     </section>
 
     <section class="simulatore-area">
@@ -58,6 +60,7 @@
     const consumoPerTick = 0.8;
     const moltiplicatoreVisivo = 10;
     const maxThrust = 6;
+    const k = 2.5; // costante per curva esponenziale della spinta
 
     const form = document.getElementById("inputForm");
     const navicella = document.getElementById("navicella");
@@ -71,11 +74,10 @@
     let y = 0;
     let fuel = 100;
     let spinta = false;
-    let thrust = 0;
+    let tempoPressione = 0;
     let atterrato = false;
     let intervallo;
 
-    // Controlli propulsione
     btnPropulsore.addEventListener("mousedown", () => spinta = true);
     btnPropulsore.addEventListener("mouseup", () => spinta = false);
     btnPropulsore.addEventListener("touchstart", () => spinta = true);
@@ -95,7 +97,7 @@
       v = parseFloat(document.getElementById("velocita").value);
       y = 0;
       fuel = 100;
-      thrust = 0;
+      tempoPressione = 0;
       atterrato = false;
       navicella.style.top = y + "px";
       statoEl.textContent = "Simulazione in corso...";
@@ -104,12 +106,12 @@
         let acc = gL;
 
         if (spinta && fuel > 0) {
-          // Spinta progressiva fino a maxThrust
-          thrust = Math.min(thrust + 0.2, maxThrust);
+          tempoPressione += dt;
+          const thrust = maxThrust * (1 - Math.exp(-k * tempoPressione));
           acc -= thrust;
           fuel = Math.max(0, fuel - consumoPerTick);
         } else {
-          thrust = 0; // resetta la spinta se motori spenti
+          tempoPressione = 0;
         }
 
         v += acc * dt;
@@ -138,13 +140,10 @@
       y = 0;
       fuel = 100;
       spinta = false;
-      thrust = 0;
+      tempoPressione = 0;
       statoEl.textContent = "In attesa...";
       navicella.style.top = "0px";
     }
   </script>
 </body>
 </html>
-
-
-<!-- chidere di continuare a modificare -->
