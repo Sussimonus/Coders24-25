@@ -4,65 +4,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulazione Avanzata di Allunaggio</title>
+  <title>Simulazione Allunaggio</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 
-<body onresize="setLarghezzaCanvas()">
+<body onresize="resizeArea()">
   <main class="layout">
     <header class="header">
       <h1 class="title">Simulazione Avanzata di Allunaggio</h1>
     </header>
 
-    <section class="controls">
-      <form id="inputForm" class="input-form">
-        <label for="massa">Massa navetta (kg):</label>
-        <input type="number" id="massa" class="input" min="10" max="10000" required />
+    <div class="container">
+      <!-- Colonna Controlli -->
+      <div class="colonna-controlli">
+        <section class="controls">
+          <form id="inputForm" class="input-form">
+            <label for="massa">Massa navetta (kg):</label>
+            <input type="number" id="massa" class="input" min="10" max="10000" required />
 
-        <label for="velocita">Velocità iniziale (m/s):</label>
-        <input type="number" id="velocita" class="input" min="0" max="100" required />
+            <label for="velocita">Velocità iniziale (m/s):</label>
+            <input type="number" id="velocita" class="input" min="0" max="100" required />
 
-        <button type="submit" class="btn-start">Avvia Simulazione</button>
-      </form>
+            <button type="submit" class="btn-start">Avvia Simulazione</button>
+          </form>
 
-      <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori (tasto W)</button>
+          <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori (tasto W)</button>
 
+          <div class="telemetria">
+            <p>Velocità: <span id="teleVel">0</span> m/s</p>
+            <p>Altitudine: <span id="teleAlt">0</span> m</p>
+            <p>Carburante: <span id="teleFuel">0</span>%</p>
+            <p>Stato: <span id="stato">In attesa...</span></p>
+          </div>
 
-      <div class="telemetria-istruzioni">
-        <div class="telemetria">
-          <p>Velocità: <span id="teleVel">0</span> m/s</p>
-          <p>Altitudine: <span id="teleAlt">0</span> m</p>
-          <p>Carburante: <span id="teleFuel">0</span>%</p>
-          <p>Stato: <span id="stato">In attesa...</span></p>
-        </div>
-  
-        <div class="istruzioni">
-          <h3>Controlli:</h3>
-          <ul>
-            <li><strong>Tasto W</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente secondo
-              curva esponenziale)</li>
-            <li>Rilascia per disattivare i motori</li>
-            <li>L'atterraggio è considerato <strong>riuscito</strong> se la navetta tocca il suolo con una velocità ≤ 5
-              m/s</li>
-            <li>L'atterraggio è <strong>fallito</strong> (Crash!) se la velocità è superiore a 5 m/s all’impatto</li>
-          </ul>
-        </div>
+          <div class="istruzioni">
+            <h3>Controlli:</h3>
+            <ul>
+              <li><strong>Tasto W</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente)</li>
+              <li>Rilascia per disattivare i motori</li>
+              <li>L’atterraggio è <strong>riuscito</strong> se la velocità ≤ 5 m/s</li>
+              <li>L’atterraggio è <strong>fallito</strong> se la velocità > 5 m/s</li>
+            </ul>
+          </div>
+
+          <p class="note" id="prova"></p>
+        </section>
       </div>
-      
 
-      <p class="note" id="prova"></p>
-    </section>
-
-    <section class="simulatore-area">
-      <div id="areaSimulazione" class="sim-area">
-        <div id="navicella" class="lander"></div>
-        <div id="bersaglio" class="target"></div>
+      <!-- Colonna Simulazione -->
+      <div class="colonna-simulazione">
+        <section class="simulatore-area">
+          <div id="areaSimulazione" class="sim-area">
+            <div id="navicella" class="lander"></div>
+            <div id="bersaglio" class="target"></div>
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
   </main>
 
-  <script src="js/script.js">
-  </script>
+  <script src="js/script.js"></script>
 </body>
 
 </html>
