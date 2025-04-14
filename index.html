@@ -53,16 +53,17 @@
   </main>
 
   <script>
-    const G = 6.674e-11; // costante gravitazionale universale
-    const mLuna = 7.348e22; // massa della Luna (kg)
-    const rLuna = 1.737e6; // raggio della Luna in metri
+    const G = 6.674e-11;
+    const mLuna = 7.348e22;
+    const rLuna = 1.737e6;
     const maxLandingV = 5;
     const consumoPerTick = 0.8;
     const moltiplicatoreVisivo = 10;
     const maxThrust = 6;
-    const k = 2.5; // costante curva esponenziale propulsione
-    const altMax = 500000; // altezza max in metri per la simulazione visiva
+    const k = 2.5;
+    const altMax = 500000;
     const suoloY = 380;
+    const altitudineSicura = 0; // Altitudine target per un atterraggio perfetto
 
     const form = document.getElementById("inputForm");
     const navicella = document.getElementById("navicella");
@@ -106,11 +107,10 @@
       statoEl.textContent = "Simulazione in corso...";
 
       intervallo = setInterval(() => {
-        // Calcolo altezza reale della navetta rispetto alla superficie (in metri)
         const altitudine = ((suoloY - y) / suoloY) * altMax;
-        const r = rLuna + altitudine;
+        const altitudineReale = Math.max(0, altitudine); // blocco sotto zero
+        const r = rLuna + altitudineReale;
 
-        // Gravità variabile in base all'altitudine
         const g = G * mLuna / (r * r);
 
         let acc = g;
@@ -127,12 +127,12 @@
         v += acc * dt;
         y += v * dt * moltiplicatoreVisivo;
 
-        navicella.style.top = `${y}px`;
+        navicella.style.top = `${Math.min(y, suoloY)}px`;
         velEl.textContent = v.toFixed(2);
-        altEl.textContent = Math.max(0, altitudine.toFixed(0));
+        altEl.textContent = altitudineReale.toFixed(0);
         fuelEl.textContent = fuel.toFixed(0);
 
-        if (y >= suoloY) {
+        if (altitudineReale <= altitudineSicura && !atterrato) {
           clearInterval(intervallo);
           atterrato = true;
           if (v <= maxLandingV) {
