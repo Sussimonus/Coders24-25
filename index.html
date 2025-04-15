@@ -28,7 +28,14 @@
             <button type="submit" class="btn-start">Avvia Simulazione</button>
           </form>
 
-          <button id="btnPropulsore" class="btn-propulsore">Attiva Propulsori (tasto W)</button>
+          <div class="bottoni-comandi">
+            <button id="btnPropulsoreSinistra" class="btn-propulsore">Attiva Propulsori (tasto A)</button>
+            <button id="btnPropulsoreRallenta" class="btn-propulsore">Attiva Propulsori (tasto W)</button>
+            <button id="btnPropulsoreDestra" class="btn-propulsore">Attiva Propulsori (tasto D)</button>
+            <button id="btnPropulsoreAccelera" class="btn-propulsore">Attiva Propulsori (tasto S)</button>
+          </div>
+
+
 
           <div class="telemetria">
             <p>Velocità: <span id="teleVel">0</span> m/s</p>
@@ -40,10 +47,11 @@
           <div class="istruzioni">
             <h3>Controlli:</h3>
             <ul>
-              <li><strong>Tasto W</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente)</li>
+              <li><strong>Tasto W</strong> o <strong>pulsante Propulsori</strong>: attiva i motori (spinta crescente)
+              </li>
               <li>Rilascia per disattivare i motori</li>
-              <li>L’atterraggio è <strong>riuscito</strong> se la velocità ≤ 5 m/s</li>
-              <li>L’atterraggio è <strong>fallito</strong> se la velocità > 5 m/s</li>
+              <li>L'atterraggio è <strong>riuscito</strong> se la velocità ≤ 5 m/s</li>
+              <li>L'atterraggio è <strong>fallito</strong> se la velocità > 5 m/s</li>
             </ul>
           </div>
 
